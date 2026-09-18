@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberNet Builder: Misión Computación</title>
+    <!-- Tailwind CSS desde CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Fira Code', monospace;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+        .neon-border {
+            box-shadow: 0 0 10px #00f0ff, inset 0 0 5px #00f0ff;
+        }
+        .neon-text {
+            text-shadow: 0 0 8px #00f0ff;
+        }
+        .drop-zone {
+            transition: all 0.3s ease;
+        }
+        .drop-zone.drag-over {
+            background-color: rgba(0, 240, 255, 0.2);
+            border-color: #00f0ff;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex flex-col justify-between">
+
+    <!-- HEADER / HUD -->
+    <header class="border-b-2 border-cyan-500 pb-4 mb-6 flex flex-wrap justify-between items-center gap-4 bg-slate-900 p-4 rounded-lg neon-border">
+        <div>
+            <h1 class="text-2xl font-bold text-cyan-400 neon-text">CYBERNET BUILDER v1.0</h1>
+            <p class="text-xs text-slate-400">Sector: Reconstrucción de Red Global | Nivel 1</p>
+        </div>
+        <div class="flex gap-6 text-sm font-semibold">
+            <div class="bg-slate-800 px-3 py-2 rounded border border-cyan-500">
+                🪙 ByteCoins: <span id="score" class="text-yellow-400">0</span>
+            </div>
+            <div class="bg-slate-800 px-3 py-2 rounded border border-red-500">
+                ❤️ Integridad: <span id="health" class="text-red-400">100%</span>
+            </div>
+            <div class="bg-slate-800 px-3 py-2 rounded border border-green-500">
+                ⏱️ Tiempo: <span id="timer" class="text-green-400">120</span>s
+            </div>
+        </div>
+    </header>
+
+    <!-- ÁREA DE JUEGO PRINCIPAL -->
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
+        
+        <!-- INVENTARIO / PALETA DE COMPONENTES -->
+        <section class="bg-slate-900 border border-slate-700 p-4 rounded-lg flex flex-col justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-cyan-400 mb-3 border-b border-slate-700 pb-2">📦 Componentes de Hardware</h2>
+                <p class="text-xs text-slate-400 mb-4">Arrastra los componentes a su zócalo correspondiente en la tarjeta madre:</p>
+                
+                <div id="inventory" class="space-y-3">
+                    <div id="comp-cpu" draggable="true" class="component bg-slate-800 p-3 rounded border border-cyan-500/50 hover:border-cyan-400 cursor-grab active:cursor-grabbing flex items-center justify-between" data-type="cpu">
+                        <span>🧠 Procesador (CPU)</span>
+                        <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-1 rounded border border-cyan-800">Procesamiento</span>
+                    </div>
+                    <div id="comp-ram" draggable="true" class="component bg-slate-800 p-3 rounded border border-cyan-500/50 hover:border-cyan-400 cursor-grab active:cursor-grabbing flex items-center justify-between" data-type="ram">
+                        <span>⚡ Memoria RAM</span>
+                        <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-1 rounded border border-cyan-800">Memoria Volátil</span>
+                    </div>
+                    <div id="comp-gpu" draggable="true" class="component bg-slate-800 p-3 rounded border border-cyan-500/50 hover:border-cyan-400 cursor-grab active:cursor-grabbing flex items-center justify-between" data-type="gpu">
+                        <span>🎮 Tarjeta Gráfica (GPU)</span>
+                        <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-1 rounded border border-cyan-800">Video</span>
+                    </div>
+                    <div id="comp-psu" draggable="true" class="component bg-slate-800 p-3 rounded border border-cyan-500/50 hover:border-cyan-400 cursor-grab active:cursor-grabbing flex items-center justify-between" data-type="psu">
+                        <span>🔌 Fuente de Poder (PSU)</span>
+                        <span class="text-xs bg-cyan-950 text-cyan-400 px-2 py-1 rounded border border-cyan-800">Energía</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTÓN DE EVENTO ALEATORIO -->
+            <div class="mt-6">
+                <button id="event-btn" onclick="triggerRandomEvent()" class="w-full py-2 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded border border-purple-400 transition">
+                    ⚠️ Simular Ciberataque Aleatorio
+                </button>
+            </div>
+        </section>
+
+        <!-- TARJETA MADRE (ZONA DROP) -->
+        <section class="bg-slate-900 border border-slate-700 p-4 rounded-lg flex flex-col justify-between lg:col-span-2">
+            <div>
+                <h2 class="text-lg font-bold text-cyan-400 mb-3 border-b border-slate-700 pb-2">🛠️ Tarjeta Madre (Motherboard Virtual)</h2>
+                
+                <div class="grid grid-cols-2 gap-4 bg-slate-950 p-6 rounded-lg border-2 border-dashed border-slate-700 min-h-[320px]">
+                    
+                    <!-- Socket CPU -->
+                    <div class="drop-zone border-2 border-dashed border-cyan-500/40 rounded-lg p-4 flex flex-col items-center justify-center text-center bg-slate-900/50" data-accept="cpu">
+                        <span class="text-xs font-bold text-slate-500 mb-2">ZÓCALO CPU</span>
+                        <div class="target-slot text-slate-400 text-xs">[ Vacío ]</div>
+                    </div>
+
+                    <!-- Slot RAM -->
+                    <div class="drop-zone border-2 border-dashed border-cyan-500/40 rounded-lg p-4 flex flex-col items-center justify-center text-center bg-slate-900/50" data-accept="ram">
+                        <span class="text-xs font-bold text-slate-500 mb-2">SLOT RAM DUAL-CHANNEL</span>
+                        <div class="target-slot text-slate-400 text-xs">[ Vacío ]</div>
+                    </div>
+
+                    <!-- Slot GPU (PCIe) -->
+                    <div class="drop-zone border-2 border-dashed border-cyan-500/40 rounded-lg p-4 flex flex-col items-center justify-center text-center bg-slate-900/50" data-accept="gpu">
+                        <span class="text-xs font-bold text-slate-500 mb-2">RANURA PCIE (GPU)</span>
+                        <div class="target-slot text-slate-400 text-xs">[ Vacío ]</div>
+                    </div>
+
+                    <!-- Conector PSU -->
+                    <div class="drop-zone border-2 border-dashed border-cyan-500/40 rounded-lg p-4 flex flex-col items-center justify-center text-center bg-slate-900/50" data-accept="psu">
+                        <span class="text-xs font-bold text-slate-500 mb-2">CONECTOR ATX 24-PIN</span>
+                        <div class="target-slot text-slate-400 text-xs">[ Vacío ]</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- CONSOLA DE DIAGNÓSTICO -->
+            <div class="mt-4 bg-slate-950 p-3 rounded border border-slate-800 text-xs text-green-400 h-24 overflow-y-auto" id="console-log">
+                [SISTEMA]: Inicializando CyberNet Builder...<br>
+                [SISTEMA]: Arrastra los componentes para ensamblar la estación de trabajo.
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL DE PREGUNTAS / EVENTOS ALEATORIOS -->
+    <div id="quiz-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border-2 border-cyan-500 rounded-lg p-6 max-w-lg w-full neon-border">
+            <span class="text-xs text-purple-400 font-bold tracking-wider uppercase">🚨 ALERTA DEL SISTEMA EN TIEMPO REAL</span>
+            <h3 id="quiz-title" class="text-lg font-bold text-white mt-1 mb-3">Título de la Pregunta</h3>
+            <p id="quiz-question" class="text-sm text-slate-300 mb-4">Texto de la pregunta...</p>
+            
+            <div id="quiz-options" class="space-y-2 mb-4">
+                <!-- Opciones dinámicas -->
+            </div>
+
+            <div id="quiz-feedback" class="hidden text-xs p-2 rounded mb-3"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- ESTADO DEL JUEGO ---
+        let score = 0;
+        let health = 100;
+        let timeLeft = 120;
+        let installedComponents = 0;
+        const totalComponents = 4;
+
+        // --- BANCO DE PREGUNTAS ALEATORIAS ---
+        const questionBank = [
+            {
+                title: "¡Alerta de Phishing!",
+                question: "Recibes un correo sospechoso con el asunto 'URGENTE: Tu cuenta bancaria se cerrará'. ¿Qué debes hacer?",
+                options: [
+                    { text: "Abrir el enlace y poner tus contraseñas.", correct: false },
+                    { text: "Reportar el correo como Phishing y eliminarlo.", correct: true },
+                    { text: "Reenviarlo a tus amigos para avisarles.", correct: false }
+                ],
+                feedback: "¡Correcto! Nunca abras enlaces de correos no solicitados."
+            },
+            {
+                title: "Fallo de Enfriamiento",
+                question: "El procesador alcanza los 95°C y el sistema se apaga. ¿Cuál es la causa probable?",
+                options: [
+                    { text: "El disco duro está demasiado lleno.", correct: false },
+                    { text: "Falta pasta térmica o el disipador está mal instalado.", correct: true },
+                    { text: "El cable Ethernet está desconectado.", correct: false }
+                ],
+                feedback: "¡Excelente! La pasta térmica y el disipador previenen el sobrecalentamiento."
+            },
+            {
+                title: "Lógica de Programación",
+                question: "Un bucle contiene la condición MIENTRAS (1 == 1). ¿Qué sucederá al ejecutarlo?",
+                options: [
+                    { text: "Se ejecutará una sola vez.", correct: false },
+                    { text: "Dará error de compilación.", correct: false },
+                    { text: "Creará un bucle infinito que congelará el sistema.", correct: true }
+                ],
+                feedback: "¡Muy bien! Como 1 siempre es igual a 1, la condición nunca deja de cumplirse."
+            },
+            {
+                title: "Configuración de Red",
+                question: "¿Qué servicio asigna direcciones IP automáticamente a los dispositivos de una red?",
+                options: [
+                    { text: "Servidor DHCP", correct: true },
+                    { text: "Navegador Web", correct: false },
+                    { text: "Antivirus", correct: false }
+                ],
+                feedback: "¡Exacto! DHCP asigna IPs dinámicas en la red."
+            }
+        ];
+
+        // --- SISTEMA DRAG & DROP ---
+        const components = document.querySelectorAll('.component');
+        const dropZones = document.querySelectorAll('.drop-zone');
+
+        components.forEach(comp => {
+            comp.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.dataset.type);
+                e.dataTransfer.setData('element-id', e.target.id);
+            });
+        });
+
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('drag-over');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('drag-over');
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+
+                const compType = e.dataTransfer.getData('text/plain');
+                const compId = e.dataTransfer.getData('element-id');
+                const targetType = zone.dataset.accept;
+
+                if (compType === targetType) {
+                    const compElem = document.getElementById(compId);
+                    zone.querySelector('.target-slot').innerHTML = `<span class="text-cyan-400 font-bold">✔ ${compElem.innerText}</span>`;
+                    zone.classList.add('border-green-500', 'bg-green-950/20');
+                    compElem.remove(); // Quitar del inventario
+
+                    installedComponents++;
+                    updateScore(25);
+                    logConsole(`[ÉXITO]: Componente ${compType.toUpperCase()} instalado correctamente.`);
+
+                    if (installedComponents === totalComponents) {
+                        logConsole(`[MISIÓN COMPLETADA]: Hardware totalmente ensamblado. Escaneando sistema...`);
+                        setTimeout(triggerRandomEvent, 1000);
+                    }
+                } else {
+                    updateHealth(-15);
+                    logConsole(`[ERROR]: Incompatibilidad detectada al intentar instalar ${compType.toUpperCase()}.`);
+                }
+            });
+        });
+
+        // --- FUNCIONES DEL JUEGO ---
+        function updateScore(points) {
+            score += points;
+            document.getElementById('score').innerText = score;
+        }
+
+        function updateHealth(amount) {
+            health += amount;
+            if (health < 0) health = 0;
+            document.getElementById('health').innerText = `${health}%`;
+            if (health === 0) {
+                alert("¡SISTEMA COLAPSADO! La integridad cayó a 0%. Reiniciando misión...");
+                location.reload();
+            }
+        }
+
+        function logConsole(message) {
+            const consoleElem = document.getElementById('console-log');
+            consoleElem.innerHTML += `<br>${message}`;
+            consoleElem.scrollTop = consoleElem.scrollHeight;
+        }
+
+        // --- SISTEMA DE PREGUNTAS ALEATORIAS ---
+        function triggerRandomEvent() {
+            const randomQuiz = questionBank[Math.floor(Math.random() * questionBank.length)];
+            
+            document.getElementById('quiz-title').innerText = randomQuiz.title;
+            document.getElementById('quiz-question').innerText = randomQuiz.question;
+            
+            const optionsContainer = document.getElementById('quiz-options');
+            const feedbackElem = document.getElementById('quiz-feedback');
+            
+            optionsContainer.innerHTML = '';
+            feedbackElem.classList.add('hidden');
+
+            randomQuiz.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-xs transition";
+                btn.innerText = opt.text;
+                btn.onclick = () => {
+                    if (opt.correct) {
+                        feedbackElem.className = "text-xs p-2 rounded mb-3 bg-green-900/50 border border-green-500 text-green-300";
+                        feedbackElem.innerText = randomQuiz.feedback;
+                        updateScore(50);
+                        logConsole(`[EVENTO]: Respuesta correcta. Ciberdefensa reforzada.`);
+                    } else {
+                        feedbackElem.className = "text-xs p-2 rounded mb-3 bg-red-900/50 border border-red-500 text-red-300";
+                        feedbackElem.innerText = "Respuesta incorrecta. El sistema sufrió daños.";
+                        updateHealth(-20);
+                        logConsole(`[EVENTO]: Error de ciberseguridad.`);
+                    }
+                    feedbackElem.classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('quiz-modal').classList.add('hidden');
+                    }, 2500);
+                };
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('quiz-modal').classList.remove('hidden');
+        }
+
+        // --- TEMPORIZADOR ---
+        setInterval(() => {
+            if (timeLeft > 0) {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft;
+            } else {
+                alert("¡TIEMPO AGOTADO! Se acabó el tiempo de seguridad.");
+                location.reload();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
